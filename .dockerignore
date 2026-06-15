@@ -1,0 +1,11 @@
+node_modules/
+dist/
+build/
+.firebase/
+.git/
+.env*
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+firebase-applet-config.json
