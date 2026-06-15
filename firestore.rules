@@ -1,0 +1,51 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Global Safety Net
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isValidId(id) {
+      return id is string && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    function incoming() {
+      return request.resource.data;
+    }
+
+    function existing() {
+      return resource.data;
+    }
+
+    function isValidEpisode(data) {
+      return data.userId == request.auth.uid
+        && data.title is string && data.title.size() <= 200
+        && data.matchName is string && data.matchName.size() <= 200
+        && data.language is string && data.language.size() <= 100
+        && data.tone is string && data.tone.size() <= 100
+        && data.segments is list && data.segments.size() <= 50;
+    }
+
+    match /episodes/{episodeId} {
+      allow read: if isSignedIn() && existing().userId == request.auth.uid;
+      
+      allow create: if isSignedIn()
+        && isValidId(episodeId)
+        && isValidEpisode(incoming())
+        && incoming().userId == request.auth.uid;
+
+      allow update: if isSignedIn()
+        && isValidEpisode(incoming())
+        && existing().userId == request.auth.uid
+        && incoming().userId == existing().userId;
+
+      allow delete: if isSignedIn()
+        && existing().userId == request.auth.uid;
+    }
+  }
+}

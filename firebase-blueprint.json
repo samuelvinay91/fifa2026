@@ -1,0 +1,30 @@
+{
+  "entities": {
+    "Episode": {
+      "title": "Episode",
+      "description": "An AI-generated radio episode",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "title": { "type": "string" },
+        "matchName": { "type": "string" },
+        "language": { "type": "string" },
+        "tone": { "type": "string" },
+        "durationSeconds": { "type": "integer" },
+        "userId": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "segments": {
+          "type": "array",
+          "description": "The list of segments in the episode"
+        }
+      },
+      "required": ["title", "matchName", "segments", "userId"]
+    }
+  },
+  "firestore": {
+    "episodes/{episodeId}": {
+      "schema": "Episode",
+      "description": "User-generated episodes list"
+    }
+  }
+}

@@ -1,0 +1,6 @@
+{
+  "name": "FIFA 2026 AI Radio",
+  "description": "24/7 AI-generated radio station, multi-speaker audio narration, and creator dashboard with an interactive business scaling calculator.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
