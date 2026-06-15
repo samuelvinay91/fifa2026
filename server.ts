@@ -192,11 +192,12 @@ Return the result strictly in JSON matching this schema:
 
   try {
     if (aiClient) {
-      console.log(`Generating radio script for ${matchName} using gemini-3.5-flash...`);
+      console.log(`Generating radio script for ${matchName} using gemini-3.5-flash with Search Grounding...`);
       const response = await aiClient.models.generateContent({
         model: "gemini-3.5-flash",
         contents: prompt,
         config: {
+          tools: [{ googleSearch: {} }],
           responseMimeType: "application/json",
           responseSchema: {
             type: Type.OBJECT,

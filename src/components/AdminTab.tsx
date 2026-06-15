@@ -55,6 +55,7 @@ export default function AdminTab({
   const [genMatch, setGenMatch] = useState(fixtures[0]?.id || "match-1");
   const [genType, setGenType] = useState("preview");
   const [genTone, setGenTone] = useState("Energetic");
+  const [customSearchQuery, setCustomSearchQuery] = useState("");
 
   // New sponsor state
   const [newSponsorName, setNewSponsorName] = useState("");
@@ -104,10 +105,19 @@ export default function AdminTab({
   };
 
   const handleTriggerManualEp = () => {
-    const fixtureObj = fixtures.find((f) => f.id === genMatch);
-    const homeName = WORLD_CUP_TEAMS.find((t) => t.id === fixtureObj?.teamHomeId)?.name || "USA";
-    const awayName = WORLD_CUP_TEAMS.find((t) => t.id === fixtureObj?.teamAwayId)?.name || "Canada";
-    const matchNameText = `${homeName} vs ${awayName}`;
+    let matchNameText = "";
+    if (genMatch === "custom-search") {
+      if (!customSearchQuery.trim()) {
+        showNotification("Please select or enter a real-time search query.", "error");
+        return;
+      }
+      matchNameText = customSearchQuery.trim();
+    } else {
+      const fixtureObj = fixtures.find((f) => f.id === genMatch);
+      const homeName = WORLD_CUP_TEAMS.find((t) => t.id === fixtureObj?.teamHomeId)?.name || "USA";
+      const awayName = WORLD_CUP_TEAMS.find((t) => t.id === fixtureObj?.teamAwayId)?.name || "Canada";
+      matchNameText = `${homeName} vs ${awayName}`;
+    }
 
     onManualTriggerEp(matchNameText, genType, genTone);
     showNotification(`Queued production thread for manual script generation on "${matchNameText}"`, "success");
@@ -193,70 +203,93 @@ export default function AdminTab({
               Force Manual Dynamic Content Generation
             </h3>
 
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-end">
-              <div>
-                <label className="block text-[10px] font-mono uppercase font-black text-neutral-500 mb-1">
-                  1. Select Fixture
-                </label>
-                <select
-                  value={genMatch}
-                  onChange={(e) => setGenMatch(e.target.value)}
-                  className="w-full bg-[#F0F0F0] border-2 border-black p-2 text-xs font-black uppercase outline-none focus:bg-white cursor-pointer"
-                >
-                  {fixtures.map((f) => {
-                    const home = WORLD_CUP_TEAMS.find((t) => t.id === f.teamHomeId)?.name || "USA";
-                    const away = WORLD_CUP_TEAMS.find((t) => t.id === f.teamAwayId)?.name || "Canada";
-                    return (
-                      <option key={f.id} value={f.id}>
-                        {home} vs {away} ({f.group})
-                      </option>
-                    );
-                  })}
-                </select>
-              </div>
-
-              <div>
-                <label className="block text-[10px] font-mono uppercase font-black text-neutral-500 mb-1">
-                  2. Select Format
-                </label>
-                <select
-                  value={genType}
-                  onChange={(e) => setGenType(e.target.value)}
-                  className="w-full bg-[#F0F0F0] border-2 border-black p-2 text-xs font-black uppercase outline-none focus:bg-white cursor-pointer"
-                >
-                  <option value="preview">Match Preview (3-5 min)</option>
-                  <option value="live-pulse">Live Pulse (45-90 sec)</option>
-                  <option value="recap">Full-Time Recap (3-4 min)</option>
-                  <option value="predictions">Prediction & Odds (2-4 min)</option>
-                  <option value="mailbag">Fan Mailbag (2-3 min)</option>
-                  <option value="bulletin">Breaking News Bulletin</option>
-                </select>
-              </div>
-
-              <div className="flex gap-2">
-                <div className="flex-1">
+            <div className="space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-end">
+                <div>
                   <label className="block text-[10px] font-mono uppercase font-black text-neutral-500 mb-1">
-                    3. Tone choice
+                    1. Select Fixture or Query Source
                   </label>
                   <select
-                    value={genTone}
-                    onChange={(e) => setGenTone(e.target.value)}
-                    className="w-full bg-[#F0F0F0] border-2 border-black p-2 text-xs font-black uppercase outline-none focus:bg-white cursor-pointer"
+                    id="gen-match-source"
+                    value={genMatch}
+                    onChange={(e) => setGenMatch(e.target.value)}
+                    className="w-full bg-[#F0F0F0] border-2 border-black p-2 text-xs font-black uppercase outline-none focus:bg-white cursor-pointer text-black"
                   >
-                    <option value="Energetic">Energetic</option>
-                    <option value="Dramatic">Dramatic</option>
-                    <option value="Casual">Casual</option>
-                    <option value="Analytical">Analytical</option>
+                    <option value="custom-search">🔍 Real-time Web Search (Google Grounding)</option>
+                    {fixtures.map((f) => {
+                      const home = WORLD_CUP_TEAMS.find((t) => t.id === f.teamHomeId)?.name || "USA";
+                      const away = WORLD_CUP_TEAMS.find((t) => t.id === f.teamAwayId)?.name || "Canada";
+                      return (
+                        <option key={f.id} value={f.id}>
+                          {home} vs {away} ({f.group})
+                        </option>
+                      );
+                    })}
                   </select>
                 </div>
 
-                <button
-                  onClick={handleTriggerManualEp}
-                  className="bg-[#CCFF00] text-black border-2 border-black p-2 hover:bg-black hover:text-white shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] active:translate-y-0.5 cursor-pointer text-xs font-black uppercase"
-                >
-                  Generate
-                </button>
+                <div>
+                  <label className="block text-[10px] font-mono uppercase font-black text-neutral-500 mb-1">
+                    2. Select Format
+                  </label>
+                  <select
+                    value={genType}
+                    onChange={(e) => setGenType(e.target.value)}
+                    className="w-full bg-[#F0F0F0] border-2 border-black p-2 text-xs font-black uppercase outline-none focus:bg-white cursor-pointer text-black"
+                  >
+                    <option value="preview">Match Preview (3-5 min)</option>
+                    <option value="live-pulse">Live Pulse (45-90 sec)</option>
+                    <option value="recap">Full-Time Recap (3-4 min)</option>
+                    <option value="predictions">Prediction & Odds (2-4 min)</option>
+                    <option value="mailbag">Fan Mailbag (2-3 min)</option>
+                    <option value="bulletin">Breaking News Bulletin</option>
+                  </select>
+                </div>
+
+                <div className="flex gap-2">
+                  <div className="flex-1">
+                    <label className="block text-[10px] font-mono uppercase font-black text-neutral-500 mb-1">
+                      3. Tone choice
+                    </label>
+                    <select
+                      value={genTone}
+                      onChange={(e) => setGenTone(e.target.value)}
+                      className="w-full bg-[#F0F0F0] border-2 border-black p-2 text-xs font-black uppercase outline-none focus:bg-white cursor-pointer text-black"
+                    >
+                      <option value="Energetic">Energetic</option>
+                      <option value="Dramatic">Dramatic</option>
+                      <option value="Casual">Casual</option>
+                      <option value="Analytical">Analytical</option>
+                    </select>
+                  </div>
+
+                  <button
+                    onClick={handleTriggerManualEp}
+                    className="bg-[#CCFF00] text-black border-2 border-black p-2 hover:bg-black hover:text-white shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] active:translate-y-0.5 cursor-pointer text-xs font-black uppercase"
+                  >
+                    Generate
+                  </button>
+                </div>
               </div>
+
+              {genMatch === "custom-search" && (
+                <div className="p-4 border-2 border-dashed border-black bg-neutral-50 animate-fade-in relative text-left">
+                  <label className="block text-[10px] font-mono uppercase font-black text-neutral-500 mb-1">
+                    🔍 Live Web Search News Query (Google Grounded & Trademark Safe)
+                  </label>
+                  <input
+                    id="custom-search-topic-input"
+                    type="text"
+                    value={customSearchQuery}
+                    onChange={(e) => setCustomSearchQuery(e.target.value)}
+                    placeholder="e.g., 'Argentina vs Canada live news standing score' or 'English squad latest prediction'"
+                    className="w-full bg-white border-2 border-black p-2.5 text-xs font-bold font-mono uppercase outline-none focus:ring-2 focus:ring-[#CCFF00] text-black"
+                  />
+                  <div className="text-[9px] font-mono mt-1 text-neutral-500 font-bold uppercase leading-tight">
+                    * The AI broadcast producer will run real-time search queries to construct a custom compliance-free news feed script!
+                  </div>
+                </div>
+              )}
             </div>
           </div>
 
